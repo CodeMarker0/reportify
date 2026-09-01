@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "title": "Select the Deployment Model for the Insight Service",
+    "subtitle": "A decision brief comparing operational simplicity, isolation, delivery speed, and long-term cost.",
+    "eyebrow": "DECISION BRIEF / PLATFORM ENGINEERING",
+    "audience": "mixed",
+    "archetype": "decision",
+    "locale": "en",
+    "theme": "paper",
+    "density": "balanced",
+    "quality_profile": "showcase",
+    "author": "Platform Architecture",
+    "updated_at": "2026-08-30"
+  },
+  "executive": {
+    "answer": "Adopt the managed container platform for the first production phase, with an explicit portability boundary around storage, messaging, and deployment manifests.",
+    "scope": "The decision covers the first two production regions and the next 18 months. It does not decide the analytics warehouse or end-user identity provider.",
+    "implications": [
+      "The team accepts higher platform fees in exchange for faster delivery and lower operational burden.",
+      "Portability controls must be implemented before traffic and data volume make migration expensive."
+    ],
+    "next_action": "Approve the managed-platform option and assign the portability checklist before implementation begins."
+  },
+  "metrics": [
+    {"id":"metric_delivery","value":"6 weeks","label":"Estimated path to the first production release","status":"good","evidence_ref":"source_estimate"},
+    {"id":"metric_team","value":"4 engineers","label":"Current platform and service delivery team","status":"warning","evidence_ref":"source_staffing"},
+    {"id":"metric_regions","value":"2 regions","label":"Initial production footprint","status":"neutral","evidence_ref":"source_requirements"}
+  ],
+  "sections": [
+    {
+      "id":"decision_context","title":"Decision context","kind":"summary","items":[
+        {"id":"context_capacity","title":"Capacity constraint","summary":"The current team cannot safely operate a new control plane and deliver the product workload on the same schedule.","status":"warning","evidence_ref":"source_staffing"},
+        {"id":"context_boundary","title":"Portability is required","summary":"The service may move later, so data interfaces and deployment contracts cannot depend on proprietary runtime behavior.","details":["Use standard container images and health checks.","Keep state in separately managed services with export paths.","Store deployment intent in version-controlled manifests."],"status":"in-progress","evidence_ref":"source_architecture"},
+        {"id":"context_schedule","title":"Schedule pressure","summary":"The first production release is committed for the current planning cycle.","status":"warning","evidence_ref":"source_requirements"}
+      ]
+    },
+    {
+      "id":"options","title":"Options against shared criteria","note":"A comparison table is used instead of equal-height prose cards.","kind":"comparison",
+      "criteria":[
+        {"id":"delivery_speed","label":"Delivery speed","description":"Ability to meet the committed first-release date."},
+        {"id":"operations","label":"Operational burden","description":"Control-plane ownership, upgrades, on-call scope, and recovery work."},
+        {"id":"isolation","label":"Isolation","description":"Ability to enforce workload and tenant boundaries."},
+        {"id":"portability","label":"Portability","description":"Cost and complexity of moving the workload later."},
+        {"id":"cost","label":"18-month cost","description":"Platform fees plus credible engineering and operations effort."}
+      ],
+      "items":[
+        {"id":"option_managed","title":"Managed container platform","summary":"Fastest credible route with the smallest new on-call surface.","recommended":true,"values":{"delivery_speed":"High","operations":"Low to medium","isolation":"Strong with policy controls","portability":"Medium; requires explicit boundaries","cost":"Higher platform fees, lower staffing burden"},"evidence_ref":"source_estimate"},
+        {"id":"option_self_managed","title":"Self-managed orchestration","summary":"Maximum infrastructure control, but it adds control-plane ownership immediately.","values":{"delivery_speed":"Low","operations":"High","isolation":"Strong after platform hardening","portability":"High","cost":"Lower fees, materially higher engineering effort"},"evidence_ref":"source_estimate"},
+        {"id":"option_serverless","title":"Function-first serverless","summary":"Low operational overhead for simple workloads, but the service has long-running and stateful processing paths.","values":{"delivery_speed":"Medium","operations":"Low","isolation":"Provider-managed","portability":"Low to medium","cost":"Efficient at low load; uncertain for sustained processing"},"evidence_ref":"source_architecture"}
+      ]
+    },
+    {
+      "id":"tradeoffs","title":"Material trade-offs","kind":"findings","items":[
+        {"id":"finding_speed","title":"Schedule risk dominates the first phase","summary":"A self-managed control plane makes the product date depend on a second infrastructure project.","details":["Consequence: delayed customer validation and a larger initial failure surface.","Action: choose a platform that already provides upgrades, control-plane availability, and baseline observability."],"evidence_ref":"source_estimate"},
+        {"id":"finding_lockin","title":"Lock-in is a design-control problem, not a reason to own everything","summary":"The largest migration risks are proprietary state, event semantics, identity coupling, and deployment assumptions.","details":["Consequence: portability can still degrade on a managed runtime.","Action: enforce the portability checklist in architecture review and CI."],"evidence_ref":"source_architecture"}
+      ]
+    },
+    {
+      "id":"decision_actions","title":"Approval and implementation actions","kind":"actions","items":[
+        {"id":"action_approve","title":"Approve the managed container platform","summary":"Record the choice, scope, assumptions, and review date in the architecture decision record.","priority":"P0","owner":"Architecture Council","date":"2026-09-03","evidence_ref":"source_requirements"},
+        {"id":"action_portability","title":"Implement the portability checklist","summary":"Cover images, health contracts, state export, event formats, secrets, identity, and deployment manifests.","priority":"P0","owner":"Platform Architecture","date":"Before production implementation","evidence_ref":"source_architecture"},
+        {"id":"action_review","title":"Schedule an architecture re-evaluation","summary":"Revisit the choice when staffing, load, regional footprint, or regulatory requirements materially change.","priority":"P1","owner":"Service Owner","date":"Six months after launch","evidence_ref":"source_requirements"}
+      ]
+    }
+  ],
+  "sources": [
+    {"id":"source_requirements","label":"Insight Service Production Requirements","location":"docs/requirements/production.md — Schedule and regional scope"},
+    {"id":"source_staffing","label":"Platform Staffing Plan","location":"planning/platform-staffing-2026.md — Current team allocation"},
+    {"id":"source_estimate","label":"Deployment Option Estimate","location":"analysis/deployment-options.md — Delivery and operating estimates"},
+    {"id":"source_architecture","label":"Insight Service Architecture","location":"docs/architecture/insight-service.md — Runtime and state boundaries"}
+  ]
+}

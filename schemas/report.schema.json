@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reportify.local/schemas/report.schema.json",
+  "title": "Reportify Report Specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "meta", "sections"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "archetype"],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "subtitle": { "type": "string", "maxLength": 360 },
+        "eyebrow": { "type": "string", "maxLength": 80 },
+        "audience": { "enum": ["executive", "technical", "mixed"] },
+        "archetype": { "enum": ["status", "decision", "research"] },
+        "locale": { "enum": ["zh-CN", "en"] },
+        "theme": { "enum": ["executive-blue", "paper", "midnight"] },
+        "density": { "enum": ["compact", "balanced", "spacious"] },
+        "quality_profile": { "enum": ["standard", "showcase"] },
+        "author": { "type": "string", "maxLength": 120 },
+        "updated_at": { "type": "string", "maxLength": 80 }
+      }
+    },
+    "executive": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "answer": { "type": "string", "maxLength": 800 },
+        "scope": { "type": "string", "maxLength": 600 },
+        "implications": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "type": "string", "maxLength": 360 }
+        },
+        "next_action": { "type": "string", "maxLength": 500 }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/metric" }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": { "$ref": "#/$defs/section" }
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/source" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"
+    },
+    "status": {
+      "enum": [
+        "done",
+        "in-progress",
+        "blocked",
+        "planned",
+        "good",
+        "warning",
+        "risk",
+        "neutral"
+      ]
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "value", "label"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "value": { "type": "string", "maxLength": 40 },
+        "label": { "type": "string", "maxLength": 120 },
+        "status": { "$ref": "#/$defs/status" },
+        "evidence_ref": { "$ref": "#/$defs/id" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "location"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "location": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "note": { "type": "string", "maxLength": 600 }
+      }
+    },
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "type": "string", "maxLength": 360 }
+      }
+    },
+    "column": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label"],
+      "properties": {
+        "key": { "$ref": "#/$defs/id" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "align": { "enum": ["left", "center", "right"] }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "summary": { "type": "string", "maxLength": 1600 },
+        "details": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "string", "maxLength": 600 }
+        },
+        "status": { "$ref": "#/$defs/status" },
+        "owner": { "type": "string", "maxLength": 120 },
+        "date": { "type": "string", "maxLength": 80 },
+        "priority": { "enum": ["P0", "P1", "P2"] },
+        "evidence_ref": { "$ref": "#/$defs/id" },
+        "emphasis": { "type": "boolean" },
+        "recommended": { "type": "boolean" },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string", "maxLength": 500 },
+              { "type": "number" },
+              { "type": "boolean" },
+              { "type": "null" }
+            ]
+          }
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "kind"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "note": { "type": "string", "maxLength": 400 },
+        "kind": {
+          "enum": [
+            "summary",
+            "status",
+            "findings",
+            "comparison",
+            "timeline",
+            "table",
+            "flow",
+            "actions",
+            "text"
+          ]
+        },
+        "layout": {
+          "enum": [
+            "auto",
+            "compact-strip",
+            "two-column",
+            "three-column",
+            "featured-stack",
+            "cards",
+            "compact-list",
+            "comparison-table",
+            "timeline",
+            "table",
+            "flow",
+            "prose"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 40,
+          "items": { "$ref": "#/$defs/item" }
+        },
+        "criteria": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/criterion" }
+        },
+        "columns": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/column" }
+        },
+        "rows": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                { "type": "string", "maxLength": 1200 },
+                { "type": "number" },
+                { "type": "boolean" },
+                { "type": "null" }
+              ]
+            }
+          }
+        },
+        "content": { "type": "string", "maxLength": 12000 },
+        "bullets": {
+          "type": "array",
+          "maxItems": 30,
+          "items": { "type": "string", "maxLength": 800 }
+        }
+      }
+    }
+  }
+}

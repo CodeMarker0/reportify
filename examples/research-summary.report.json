@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "title": "Research Summary: Why Support Search Fails on Long-Tail Questions",
+    "subtitle": "Evidence from retrieval evaluation, query logs, and reviewer analysis.",
+    "eyebrow": "RESEARCH SUMMARY / SEARCH QUALITY",
+    "audience": "technical",
+    "archetype": "research",
+    "locale": "en",
+    "theme": "midnight",
+    "density": "compact",
+    "quality_profile": "showcase",
+    "author": "Search Quality Group",
+    "updated_at": "2026-08-30"
+  },
+  "executive": {
+    "answer": "Most long-tail failures are not caused by a single weak ranking model; they arise when query intent, document terminology, and answerable evidence are misaligned before reranking begins.",
+    "scope": "The analysis covers English support questions from the internal evaluation set and sampled production failures. It does not estimate the failure rate for all languages or all product areas.",
+    "implications": [
+      "Improving only the reranker will leave a large share of failures unchanged.",
+      "The roadmap should prioritize query normalization, document vocabulary coverage, and evidence-quality labeling."
+    ],
+    "next_action": "Run a controlled experiment that combines query normalization with evidence-quality filters before changing the reranker."
+  },
+  "metrics": [
+    {"id":"metric_sample","value":"1,240","label":"Reviewed long-tail queries","status":"neutral","evidence_ref":"source_dataset"},
+    {"id":"metric_mismatch","value":"61%","label":"Failures involving terminology or intent mismatch","status":"warning","evidence_ref":"source_analysis"},
+    {"id":"metric_evidence","value":"24%","label":"Failures where no answerable source was indexed","status":"risk","evidence_ref":"source_analysis"}
+  ],
+  "sections": [
+    {
+      "id":"findings","title":"Ranked findings","kind":"findings","items":[
+        {"id":"finding_intent","title":"Intent is lost before retrieval","summary":"Short, context-dependent queries often omit the product object, workflow stage, or error condition needed to select the right documents.","details":["Evidence: reviewer labels show repeated ambiguity in terse follow-up questions.","Consequence: lexical and vector retrieval both search the wrong semantic neighborhood.","Action: normalize the query with recent conversation entities and product context."],"evidence_ref":"source_analysis"},
+        {"id":"finding_vocabulary","title":"User vocabulary and document vocabulary diverge","summary":"Customers describe symptoms and outcomes, while documentation is organized around feature names and implementation terms.","details":["Evidence: mismatch labels account for the largest reviewed category.","Consequence: relevant documents receive weak initial retrieval scores.","Action: add terminology expansion from approved support mappings."],"evidence_ref":"source_analysis"},
+        {"id":"finding_evidence","title":"Some questions have no answerable indexed evidence","summary":"A high-scoring document is not necessarily a document that contains a complete, current answer.","details":["Evidence: reviewers identified missing, stale, or fragmentary sources in a material subset.","Consequence: ranking improvements can make an unanswerable result look more confident.","Action: label evidence quality and route unsupported questions to a gap workflow."],"evidence_ref":"source_analysis"}
+      ]
+    },
+    {
+      "id":"failure_inventory","title":"Failure-category inventory","kind":"table",
+      "columns":[
+        {"key":"category","label":"Category"},
+        {"key":"share","label":"Reviewed share","align":"right"},
+        {"key":"mechanism","label":"Primary mechanism"},
+        {"key":"intervention","label":"Most direct intervention"}
+      ],
+      "rows":[
+        {"category":"Intent or terminology mismatch","share":"61%","mechanism":"The query and indexed vocabulary do not align before reranking.","intervention":"Context-aware query normalization and approved terminology expansion"},
+        {"category":"Missing or unanswerable evidence","share":"24%","mechanism":"The index lacks a complete and current source for the question.","intervention":"Evidence-quality labels and a knowledge-gap workflow"},
+        {"category":"Ranking discrimination","share":"15%","mechanism":"Relevant evidence is retrieved but not ranked high enough.","intervention":"Targeted reranker training and hard-negative regression tests"}
+      ]
+    },
+    {
+      "id":"experiment_flow","title":"Recommended experiment path","kind":"flow","items":[
+        {"id":"flow_baseline","title":"Freeze the baseline","summary":"Keep the current retriever and reranker fixed for the comparison."},
+        {"id":"flow_normalize","title":"Add query normalization","summary":"Inject approved product, workflow, and terminology context."},
+        {"id":"flow_filter","title":"Apply evidence-quality filters","summary":"Separate answerable evidence from gaps and stale sources."},
+        {"id":"flow_measure","title":"Measure by failure category","summary":"Report gains and regressions separately for mismatch, evidence, and ranking failures."}
+      ]
+    },
+    {
+      "id":"research_actions","title":"Research and delivery actions","kind":"actions","items":[
+        {"id":"action_experiment","title":"Run the combined normalization and evidence-filter experiment","summary":"Use the frozen failure set and report results by category rather than only aggregate recall.","priority":"P0","owner":"Search Quality Group","date":"Next evaluation cycle","evidence_ref":"source_method"},
+        {"id":"action_gap_labels","title":"Add answerability labels to the indexing pipeline","summary":"Make missing, stale, and fragmentary evidence visible to retrieval and downstream generation.","priority":"P1","owner":"Knowledge Engineering","date":"After experiment review","evidence_ref":"source_analysis"}
+      ]
+    },
+    {
+      "id":"limitations","title":"Method and limitations","kind":"text",
+      "content":"The reviewed sample combines a fixed evaluation set with selected production failures. Category shares describe the reviewed sample, not the prevalence of failures across the entire query population.",
+      "bullets":["The study covers English questions only.","Reviewer labels were adjudicated for disagreements, but some intent categories remain subjective.","The analysis identifies mechanisms; it does not yet prove the expected gain from each intervention."]
+    }
+  ],
+  "sources": [
+    {"id":"source_dataset","label":"Long-tail Query Review Dataset","location":"datasets/long-tail-review-2026-08.csv — adjudicated sample"},
+    {"id":"source_analysis","label":"Failure Mechanism Analysis","location":"reports/search-failure-analysis.md — categories and reviewed shares"},
+    {"id":"source_method","label":"Retrieval Experiment Protocol","location":"experiments/retrieval-protocol.md — frozen baseline and category reporting"}
+  ]
+}

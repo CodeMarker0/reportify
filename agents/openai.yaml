@@ -1,0 +1,6 @@
+interface:
+  display_name: "Reportify"
+  short_description: "Generate polished, browser-validated standalone HTML executive reports from typed JSON"
+  default_prompt: "Use $reportify to turn this source material into a polished standalone HTML report with deterministic layout selection and browser quality checks."
+policy:
+  allow_implicit_invocation: true

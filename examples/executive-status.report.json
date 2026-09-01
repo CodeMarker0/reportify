@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "title": "Atlas 知识平台阶段汇报",
+    "subtitle": "核心链路已进入试运行，下一阶段聚焦召回质量、稳定性与试点扩展。",
+    "eyebrow": "PROJECT STATUS / 2026 Q3",
+    "audience": "executive",
+    "archetype": "status",
+    "locale": "zh-CN",
+    "theme": "executive-blue",
+    "density": "balanced",
+    "quality_profile": "showcase",
+    "author": "知识平台团队",
+    "updated_at": "2026-08-30"
+  },
+  "executive": {
+    "answer": "文档解析、混合检索和答案生成链路已经贯通，平台具备受控试运行条件；当前风险主要集中在长尾问题召回和高峰期解析稳定性。",
+    "scope": "本次覆盖文档接入、解析、索引、检索、生成和试点准备，不覆盖商业化、外部客户接入和多区域容灾。",
+    "implications": [
+      "项目重点由“功能打通”转向“质量可量化与运行可持续”。",
+      "试点范围可以扩大，但必须保留失败集回归和人工抽检。"
+    ],
+    "next_action": "完成长尾失败集回归、解析队列压测和首批两个业务团队的试点准入评审。"
+  },
+  "metrics": [
+    {"id":"metric_docs","value":"42,680","label":"已完成解析的有效文档","status":"good","evidence_ref":"source_ops"},
+    {"id":"metric_recall","value":"93.4%","label":"核心问题集 Top-5 命中率","status":"good","evidence_ref":"source_eval"},
+    {"id":"metric_blockers","value":"2","label":"进入试点前必须关闭的阻塞项","status":"warning","evidence_ref":"source_review"},
+    {"id":"metric_availability","value":"99.91%","label":"最近 14 天核心 API 可用性","status":"good","evidence_ref":"source_ops"}
+  ],
+  "sections": [
+    {
+      "id":"overview","title":"本阶段形成了什么","note":"自动布局会把内容最重的一项设为主卡，短项保持紧凑。","kind":"summary","layout":"auto",
+      "items":[
+        {"id":"overview_runtime","title":"端到端运行链路","summary":"上传、解析、切分、索引、召回、重排和生成已经形成可观测的闭环。","details":["解析任务具备失败重试和人工复核入口。","检索结果可回溯到知识片段与原始文档。","关键阶段已接入延迟、错误率和队列积压指标。"],"status":"done","evidence_ref":"source_arch"},
+        {"id":"overview_quality","title":"质量评估基线","summary":"核心问题集已形成固定评测口径。","status":"done","evidence_ref":"source_eval"},
+        {"id":"overview_pilot","title":"试点准入机制","summary":"试点团队按知识质量、权限边界和反馈责任进行准入。","status":"in-progress","evidence_ref":"source_review"}
+      ]
+    },
+    {
+      "id":"workstreams","title":"关键工作流状态","note":"状态卡片使用内容自适应高度，不为视觉对称强制等高。","kind":"status","layout":"auto",
+      "items":[
+        {"id":"stream_ingestion","title":"文档接入与解析","summary":"主流办公文档和网页内容已覆盖，复杂扫描件仍需专项治理。","status":"in-progress","owner":"文档工程组","date":"本季度","evidence_ref":"source_ops"},
+        {"id":"stream_retrieval","title":"混合检索与重排","summary":"关键词、向量和重排链路已稳定运行，正在补充长尾失败集。","status":"in-progress","owner":"检索算法组","date":"本季度","evidence_ref":"source_eval"},
+        {"id":"stream_security","title":"权限与审计","summary":"文档级权限过滤已经接入，跨空间继承规则仍在评审。","status":"warning","owner":"平台后端组","date":"试点前","evidence_ref":"source_review"},
+        {"id":"stream_observability","title":"运行可观测性","summary":"API、队列和解析任务已有统一监控与告警。","status":"done","owner":"SRE","evidence_ref":"source_ops"},
+        {"id":"stream_feedback","title":"用户反馈闭环","summary":"答案评价和问题回流已完成设计，等待试点团队接入。","status":"planned","owner":"产品与试点团队","date":"试点启动后","evidence_ref":"source_review"}
+      ]
+    },
+    {
+      "id":"milestones","title":"关键里程碑","kind":"timeline","items":[
+        {"id":"milestone_alpha","title":"完成核心链路 Alpha","summary":"验证解析、检索、生成和引用回溯的完整链路。","date":"2026-06","status":"done","evidence_ref":"source_arch"},
+        {"id":"milestone_eval","title":"建立固定评测集","summary":"形成核心问题、边界问题和失败集三类回归集合。","date":"2026-07","status":"done","evidence_ref":"source_eval"},
+        {"id":"milestone_pilot","title":"启动受控业务试点","summary":"通过准入评审后开放给首批两个业务团队。","date":"2026-09","status":"planned","evidence_ref":"source_review"}
+      ]
+    },
+    {
+      "id":"actions","title":"下一步行动","kind":"actions","items":[
+        {"id":"action_failure_set","title":"补齐长尾失败集并纳入每周回归","summary":"把试点前发现的低命中问题转成稳定、可复现的回归样本。","priority":"P0","owner":"检索算法组","date":"2026-09-05","evidence_ref":"source_eval"},
+        {"id":"action_load_test","title":"完成解析队列高峰压测","summary":"验证积压、重试、超时和降级策略在目标负载下的行为。","priority":"P0","owner":"文档工程组 / SRE","date":"2026-09-08","evidence_ref":"source_ops"},
+        {"id":"action_pilot_review","title":"完成首批试点准入评审","summary":"确认知识范围、权限边界、反馈责任和退出条件。","priority":"P1","owner":"产品与安全评审组","date":"2026-09-12","evidence_ref":"source_review"}
+      ]
+    },
+    {"id":"limitations","title":"范围与限制","kind":"text","content":"本报告中的质量结果来自固定问题集和最近一次运行数据，不能直接等同于所有真实用户问题的总体表现。试点期间仍需保留人工抽检、失败回流和权限审计。","bullets":["复杂扫描件和跨文档推理仍是主要质量边界。","多区域容灾和外部客户隔离不在本阶段范围内。"]}
+  ],
+  "sources": [
+    {"id":"source_arch","label":"Atlas Runtime Architecture","location":"docs/architecture/runtime.md — End-to-end pipeline","note":"组件边界、处理阶段与引用回溯设计。"},
+    {"id":"source_eval","label":"Retrieval Evaluation Report","location":"reports/retrieval-eval-2026-08.md — Core set and failure set","note":"Top-5 命中率、失败分类和回归范围。"},
+    {"id":"source_ops","label":"Operations Review","location":"reports/operations-review-2026-08.md — Availability and ingestion","note":"文档数量、API 可用性、队列和解析任务运行数据。"},
+    {"id":"source_review","label":"Pilot Readiness Review","location":"reviews/pilot-readiness.md — Blockers and entry criteria","note":"试点阻塞项、权限评审和准入条件。"}
+  ]
+}
