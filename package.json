@@ -1,19 +1,21 @@
 {
   "name": "reportify-agent-skill",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Agent Skill for typed, deterministic, browser-validated standalone HTML reports.",
+  "description": "Agent Skill for typed, deterministic, browser-validated HTML reports and paged presentations.",
   "license": "MIT",
   "bin": {
-    "reportify": "./bin/reportify.mjs"
+    "reportify": "./bin/reportify.mjs",
+    "reportify-present": "./bin/reportify-present.mjs"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "doctor": "node bin/reportify.mjs doctor",
     "demo": "node bin/reportify.mjs demo ./demo-output",
     "validate:example": "node bin/reportify.mjs validate examples/executive-status.report.json --quality showcase",
-    "deliver:example": "node bin/reportify.mjs deliver examples/executive-status.report.json demo-output/executive-status.html --quality showcase"
+    "deliver:example": "node bin/reportify.mjs deliver examples/executive-status.report.json demo-output/executive-status.html --quality showcase",
+    "present:example": "node bin/reportify-present.mjs examples/executive-status.report.json demo-output/executive-status.presentation.html --quality showcase"
   },
   "engines": {
     "node": ">=20"
