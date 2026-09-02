@@ -409,7 +409,12 @@
         }
         row.count += 1;
       });
-      if (rows.length > 1 && rows[rows.length - 1].count === 1) {
+      const firstRowCount = rows[0]?.count || 0;
+      const lastRow = rows[rows.length - 1];
+      const firstWidth = children[0]?.getBoundingClientRect().width || 0;
+      const lastWidth = children[children.length - 1]?.getBoundingClientRect().width || 0;
+      const lastItemSpansRow = firstWidth > 0 && lastWidth > firstWidth * 1.5;
+      if (firstRowCount > 1 && rows.length > 1 && lastRow.count === 1 && !lastItemSpansRow) {
         warnings.push({
           level: 'warning',
           code: 'ORPHAN_GRID_ITEM',
