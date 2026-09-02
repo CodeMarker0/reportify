@@ -14,7 +14,12 @@ export function enhancePresentation(html) {
     return html;
   }
 
-  const withStyle = html.replace(
+  const normalized = html.replace(
+    /<meta name="generator" content="Reportify [^"]+">/i,
+    '<meta name="generator" content="Reportify 0.2.0 presentation">',
+  );
+
+  const withStyle = normalized.replace(
     '</head>',
     `<style id="reportify-presentation-style">${PRESENTATION_CSS}</style>\n</head>`,
   );
