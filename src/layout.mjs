@@ -29,7 +29,6 @@ export function estimateItemWeight(item = {}, sectionKind = 'summary') {
   if (item.owner) weight += 0.35 + lineEstimate(item.owner, 34) * 0.25;
   if (item.date) weight += 0.25;
   if (item.evidence_ref) weight += 0.2;
-  if (item.emphasis) weight += 0.1;
   if (item.recommended) weight += 0.15;
 
   if (item.values && typeof item.values === 'object') {
@@ -50,6 +49,25 @@ function spread(weights) {
     ratio: Number((max / Math.max(min, 0.01)).toFixed(2)),
     average: Number(average.toFixed(2)),
   };
+}
+
+// Semantic importance must never be inferred from how much an author wrote.
+// Explicit emphasis wins, then a recommendation, then P0/P1/P2; ties keep order.
+export function selectFeaturedIndex(items = []) {
+  const rank = (item) => [
+    item.emphasis === true ? 1 : 0,
+    item.recommended === true ? 1 : 0,
+    ({ P0: 3, P1: 2, P2: 1 })[item.priority] || 0,
+  ];
+  if (!items.length) return null;
+  let best = 0;
+  for (let index = 1; index < items.length; index += 1) {
+    const left = rank(items[index]);
+    const right = rank(items[best]);
+    const key = left.findIndex((value, part) => value !== right[part]);
+    if (key >= 0 && left[key] > right[key]) best = index;
+  }
+  return best;
 }
 
 function automaticCardLayout(kind, weights) {
@@ -101,9 +119,7 @@ export function compileSectionLayout(section) {
     }
   }
 
-  const featuredIndex = layout === 'featured-stack' && weights.length
-    ? weights.indexOf(Math.max(...weights))
-    : null;
+  const featuredIndex = layout === 'featured-stack' ? selectFeaturedIndex(section.items) : null;
 
   return {
     sectionId: section.id,
@@ -113,13 +129,17 @@ export function compileSectionLayout(section) {
     itemWeights: weights,
     weightStats: stats,
     featuredIndex,
+    // A concise lead should sit above dense detail, not leave a tall empty column.
+    featuredPlacement: featuredIndex !== null && weights[featuredIndex] < stats.max * 0.65
+      ? 'lead-strip'
+      : 'columns',
     equalHeight: section.kind === 'comparison' && layout === 'cards',
   };
 }
 
 export function compileReportLayout(spec) {
   return {
-    compilerVersion: 1,
+    compilerVersion: 2,
     density: spec.meta.density,
     sections: spec.sections.map(compileSectionLayout),
   };

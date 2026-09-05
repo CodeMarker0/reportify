@@ -163,7 +163,7 @@ function renderCompactRow(item, section, index, sources, labels) {
 function renderCardLikeSection(section, layout, sources, labels) {
   const items = section.items || [];
   if (layout.layout === 'compact-strip') {
-    return renderCompactStrip(items[0], section, sources, labels);
+    return items.map((item) => renderCompactStrip(item, section, sources, labels)).join('');
   }
   if (layout.layout === 'compact-list') {
     return `<div class="compact-list">${items.map((item, index) => renderCompactRow(item, section, index, sources, labels)).join('')}</div>`;
@@ -173,7 +173,7 @@ function renderCardLikeSection(section, layout, sources, labels) {
     const featured = items[featuredIndex];
     const side = items.filter((_, index) => index !== featuredIndex);
     return `
-      <div class="featured-layout">
+      <div class="featured-layout${layout.featuredPlacement === 'lead-strip' ? ' featured-lead' : ''}">
         <div class="featured-main">${renderCard({ ...featured, emphasis: true }, section, sources, labels)}</div>
         <div class="featured-side">${side.map((item) => renderCard(item, section, sources, labels)).join('')}</div>
       </div>`;
@@ -396,7 +396,7 @@ export function renderReport(spec) {
   const sourceHash = sha256Text(JSON.stringify(spec));
 
   const html = `<!doctype html>
-<html lang="${escapeAttribute(spec.meta.locale)}" data-theme="${escapeAttribute(spec.meta.theme)}" data-quality-profile="${escapeAttribute(spec.meta.quality_profile)}">
+<html lang="${escapeAttribute(spec.meta.locale)}" data-theme="${escapeAttribute(spec.meta.theme)}" data-density="${escapeAttribute(spec.meta.density || 'balanced')}" data-quality-profile="${escapeAttribute(spec.meta.quality_profile)}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

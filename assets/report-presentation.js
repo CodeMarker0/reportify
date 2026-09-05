@@ -26,13 +26,20 @@
   let previousButton = null;
   let nextButton = null;
   let viewButton = null;
-  let touchStartX = null;
+  let touchStart = null;
   let initialized = false;
 
   function chunk(values, size) {
     const result = [];
-    for (let index = 0; index < values.length; index += size) {
-      result.push(values.slice(index, index + size));
+    // Keep order and the hard limit, but avoid mechanically producing 5 + 1.
+    const count = Math.ceil(values.length / size);
+    const base = Math.floor(values.length / Math.max(count, 1));
+    const remainder = values.length % Math.max(count, 1);
+    let offset = 0;
+    for (let index = 0; index < count; index += 1) {
+      const length = base + (index < remainder ? 1 : 0);
+      result.push(values.slice(offset, offset + length));
+      offset += length;
     }
     return result.length ? result : [[]];
   }
@@ -284,9 +291,10 @@
 
   function goToPage(index, options) {
     if (!pages.length) return 0;
-    const clamped = Math.max(0, Math.min(index, pages.length - 1));
+    const safeIndex = Number.isFinite(index) ? Math.trunc(index) : currentIndex;
+    const clamped = Math.max(0, Math.min(safeIndex, pages.length - 1));
     currentIndex = clamped;
-    pages.forEach((page, pageIndex) => { page.dataset.active = pageIndex === clamped ? 'true' : 'false'; });
+    pages.forEach((page, pageIndex) => { page.dataset.active = root.dataset.reportView === 'scroll' || pageIndex === clamped ? 'true' : 'false'; });
     updateControls();
     if (root.dataset.reportView === 'paged') {
       const behavior = options && options.instant ? 'auto' : 'smooth';
@@ -321,7 +329,8 @@
     window.addEventListener('keydown', (event) => {
       if (root.dataset.reportView !== 'paged') return;
       const target = event.target;
-      if (target && target.matches('input, textarea, select, button, [contenteditable="true"]')) return;
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (target && target.closest('input, textarea, select, button, [contenteditable]')) return;
       if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') {
         event.preventDefault();
         goToPage(currentIndex + 1);
@@ -340,16 +349,30 @@
 
   function installSwipeNavigation() {
     window.addEventListener('touchstart', (event) => {
+      touchStart = null;
       if (root.dataset.reportView !== 'paged' || event.touches.length !== 1) return;
-      touchStartX = event.touches[0].clientX;
+      // A table/nav swipe belongs to that scroll container, not the slide deck.
+      let target = event.target;
+      if (target.closest('a, button, input, textarea, select, [contenteditable]')) return;
+      while (target && target !== document.documentElement) {
+        const style = getComputedStyle(target);
+        if (/auto|scroll/.test(style.overflowX) && target.scrollWidth > target.clientWidth + 1) return;
+        target = target.parentElement;
+      }
+      const touch = event.touches[0];
+      touchStart = { x: touch.clientX, y: touch.clientY, id: touch.identifier };
     }, { passive: true });
+    window.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
     window.addEventListener('touchend', (event) => {
-      if (root.dataset.reportView !== 'paged' || touchStartX === null || !event.changedTouches.length) return;
-      const delta = event.changedTouches[0].clientX - touchStartX;
-      touchStartX = null;
-      if (Math.abs(delta) < 54) return;
-      if (delta < 0) goToPage(currentIndex + 1);
-      else goToPage(currentIndex - 1);
+      const start = touchStart;
+      touchStart = null;
+      if (root.dataset.reportView !== 'paged' || !start) return;
+      const touch = [...event.changedTouches].find((entry) => entry.identifier === start.id);
+      if (!touch || event.touches.length) return;
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      if (Math.abs(dx) < 54 || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
+      goToPage(currentIndex + (dx < 0 ? 1 : -1));
     }, { passive: true });
   }
 
@@ -469,7 +492,10 @@
 
     const queryView = new URLSearchParams(window.location.search).get('view');
     const initialView = queryView === 'scroll' ? 'scroll' : 'paged';
-    const hashTarget = window.location.hash ? document.querySelector(window.location.hash) : null;
+    let hashTarget = null;
+    try {
+      hashTarget = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    } catch (_) { /* A malformed fragment must not prevent presentation startup. */ }
     const hashPage = hashTarget ? pageForTarget(hashTarget) : -1;
     if (hashPage >= 0) currentIndex = hashPage;
     goToPage(currentIndex, { instant: true });
